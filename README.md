@@ -1,2 +1,3 @@
-# bigdata-unifacisa
-Repositório com alguns snippets de código que serão utilizados na Especialização em Big Data da UniFacisa.
+# Big Data Course @ UniFacisa
+
+Repository with some code snippets used on Big Data Course at UniFacisa.
