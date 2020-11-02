@@ -39,6 +39,28 @@ def add_people_count():
 
     return ret, error
 
+@app.route('/get_people_count', methods=['GET'])
+def get_people_count():
+    print('Get people count called!')
+
+    ret = dict()
+    error = True
+    try:      
+        db = get_database()
+        peopleCountCollection = db[DB_NAME]["peopleCountCollection"]
+        for doc in peopleCountCollection.find():
+            people_count_doc = {
+                "_id": str(doc['_id']),
+                "value": str(doc['value']),
+                "collector_id": doc['collector_id'],
+                "timestamp": str(doc['timestamp']),
+            }
+            ret[str(doc['_id'])] = people_count_doc 
+    except Exception as exc_N:
+        ret = "Error retrieving data from people count: "+exc_N
+    
+    return ret, error
+
 def get_database():
     db = pymongo.MongoClient("mongodb+srv://"+DB_USER+":"+DB_PASSWORD+"@"+DB_HOST+"/"+DB_NAME+"?retryWrites=true&w=majority", serverSelectionTimeoutMS=5000)
     return db

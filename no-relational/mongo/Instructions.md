@@ -79,6 +79,18 @@ curl http://$FLASK_IP:8080/add_people_count \
              }'
 ```
 
+### Get people count
+Get all people counted.
+
+* **URL**: `/get_people_count`
+* **Method:** `GET`
+* **Parameters**: none
+
+* **Request example with CURL**:
+```bash
+curl http://$FLASK_IP:8080/get_people_count --request GET 
+```
+
 ### Add people recognized
 Add people recognized by given sensor in given time.
 
