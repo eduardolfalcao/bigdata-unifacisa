@@ -22,7 +22,6 @@ cors = CORS(app)
 
 @app.route('/add_people_count', methods=['POST'])
 def add_people_count():
-
     print('Add people count called!')
     print('Request' + str(request.data))
 
@@ -58,6 +57,46 @@ def get_people_count():
             ret[str(doc['_id'])] = people_count_doc 
     except Exception as exc_N:
         ret = "Error retrieving data from people count: "+exc_N
+    
+    return ret, error
+
+@app.route('/add_people_recognized', methods=['POST'])
+def add_people_recognized():
+    print('Add people recognized called!')
+    print('Request' + str(request.data))
+
+    ret = "Inserted in people recognized Successfully!"
+    error = True
+    try:      
+        db = get_database()
+        peopleRecognizedCollection = db[DB_NAME]["peopleRecognizedCollection"]
+        peopleRecognizedCollection.insert_one(request.get_json())
+        error = False
+
+    except Exception as exc_N:
+        ret = "Error inserting in people recognized"
+
+    return ret, error
+
+@app.route('/get_people_recognized', methods=['GET'])
+def get_people_recognized():
+    print('Get people recognized!')
+
+    ret = dict()
+    error = True
+    try:      
+        db = get_database()
+        peopleRecognizedCollection = db[DB_NAME]["peopleRecognizedCollection"]
+        for doc in peopleRecognizedCollection.find():
+            people_recog_doc = {
+                "_id": str(doc['_id']),
+                "value": str(doc['value']),
+                "collector_id": doc['collector_id'],
+                "timestamp": str(doc['timestamp']),
+            }
+            ret[str(doc['_id'])] = people_recog_doc 
+    except Exception as exc_N:
+        ret = "Error retrieving data from people recognized: "+exc_N
     
     return ret, error
 
