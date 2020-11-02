@@ -100,3 +100,33 @@ Get all people recognized.
 curl http://172.17.0.3:8080/get_people_recognized --request GET 
 ```
 
+### Get people count
+Get all people counted.
+
+* **URL**: `/get_people_count`
+* **Method:** `GET`
+* **Parameters**: none
+
+* **Request example with CURL**:
+```bash
+curl http://172.17.0.3:8080/get_people_count --request GET 
+```
+
+## Run Populate Maria Script
+
+Build image of container with python script:
+```bash
+cd relational/populate-maria
+sudo docker build -t populate-maria .
+```
+
+Get to know ip of DB:
+```bash
+export MARIA_IP=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(sudo docker ps | grep maria | cut -f 1 -d ' '))
+```
+
+Then, run populate maria script:
+```bash
+cd relational/populate-maria
+sudo docker run -e DB_HOST=$MARIA_IP -e DB_NAME=iot_sensor -e DB_USER=root -e DB_PASSWORD=edu123 populate-maria:latest python3 app/populate-maria.py
+```
