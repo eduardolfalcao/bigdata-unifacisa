@@ -23,6 +23,7 @@ def add_people_count(request_data):
     #print('Request' + str(request_data))
     insert_query = """INSERT INTO PeopleCount (value, collector_id, timestamp) VALUES (%s, %s, %s)"""
     val = (request_data['value'],request_data['collector_id'],str(request_data['timestamp']))
+    run_insert_query(insert_query, val, 'PeopleCount')   
     return run_insert_query(insert_query, val, 'PeopleCount')   
 
 def add_people_recognized(request_data):
@@ -80,7 +81,7 @@ def run_insert_query(query, values, table_name):
 request_data_pc = dict()
 request_data_pr = dict()
 
-for i in range(1000):
+for i in range(10000):
     request_data_pc['value'] = i
     request_data_pc['collector_id'] = 'iot_dev_id_'+str(i)
     request_data_pc['timestamp'] = i
