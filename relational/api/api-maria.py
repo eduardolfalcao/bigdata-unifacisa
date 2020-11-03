@@ -26,6 +26,13 @@ def get_people_count():
     select_query = "SELECT * FROM PeopleCount"
     return run_select_query(select_query)
 
+@app.route('/get_people_count_per_collector', methods=['GET'])
+def get_people_count_per_collector():
+    request_data = request.get_json()
+    collectorId = request_data['collector_id']
+    select_query = "SELECT * FROM PeopleCount WHERE collector_id = \'"+collectorId+"\'"
+    return run_select_query(select_query)
+
 @app.route('/get_people', methods=['GET'])
 def get_ppl():
     select_query = "SELECT * FROM People"

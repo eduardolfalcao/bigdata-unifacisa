@@ -112,6 +112,23 @@ Get all people counted.
 curl http://172.17.0.3:8080/get_people_count --request GET 
 ```
 
+### Get people count per collector id
+Get all people counted for that collector id.
+
+* **URL**: `/get_people_count_per_collector`
+* **Method:** `GET`
+* **Parameters**:
+    1. `collector_id` - collector iot device identification (string)
+
+* **Request example with CURL**:
+```bash
+curl http://172.17.0.3:8080/get_people_count_per_collector --request GET \
+     --header "Content-Type: application/json" \
+     --data '{
+              "collector_id": "iot_dev_id_1"
+             }'
+```
+
 ## Run Populate Maria Script
 
 Build image of container with python script:
@@ -129,4 +146,15 @@ Then, run populate maria script:
 ```bash
 cd relational/populate-maria
 sudo docker run -e DB_HOST=$MARIA_IP -e DB_NAME=iot_sensor -e DB_USER=root -e DB_PASSWORD=edu123 populate-maria:latest python3 app/populate-maria.py
+```
+
+## Create Index on Table Column
+
+```bash
+sudo docker exec -it <container_id> /bin/bash
+mysql -u root -p
+show databases;
+use iot_sensor;
+show tables;
+CREATE INDEX collector_id_index ON PeopleCount (collector_id) USING BTREE;
 ```
