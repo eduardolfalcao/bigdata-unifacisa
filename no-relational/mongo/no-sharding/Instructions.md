@@ -22,7 +22,7 @@ Be sure you have docker installed, running "docker --version".
 
 Build image of container with flask api:
 ```bash
-cd no-relational/mongo/api
+cd no-relational/mongo/no-sharding/api
 sudo docker build -t api-mongo .
 ```
 
@@ -41,7 +41,7 @@ export DB_PASSWORD=edu123
 
 Then, run flask api:
 ```bash
-cd no-relational/mongo/api
+cd no-relational/mongo/no-sharding/api
 sudo docker run -e FLASK_APP=api-mongo.py -e DB_HOST=$MONGO_IP -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD api-mongo:latest
 ```
 
