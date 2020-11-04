@@ -1,8 +1,6 @@
-# Deploy and Use Mongo
+# Deploy and Use Mongo through Atlas
 
-## Mongo Deployment
-
-### Through Atlas
+## Mongo Deployment (without sharding)
 
 1. Access https://www.mongodb.com/cloud/atlas 
 2. Build cluster: (feel free to change options)
@@ -17,10 +15,6 @@
 4. Add IP on whitelist ("Network Access" tab):
     4.1. You can setup only your IP, or let it free to be accessible by anyone
 5. Connect to your cluster (from Python, next section)
-
-### Through a Local Container
-
-TBD
 
 ## Deploy Python Flask API to interact with Mongo
 
