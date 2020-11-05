@@ -34,7 +34,7 @@ def add_people_count():
         error = False
 
     except Exception as exc_N:
-        ret = "Error inserting in people count"
+        ret = "Error inserting in people count: "+str(exc_N)
 
     return ret, error
 
@@ -101,6 +101,6 @@ def get_people_recognized():
     return ret, error
 
 def get_database():
-    db = pymongo.MongoClient("mongodb://"+DB_USER+":"+DB_PASSWORD+"@"+DB_HOST+":"+str(27017)+"/"+DB_NAME, serverSelectionTimeoutMS=5000)
+    db = pymongo.MongoClient("mongodb://"+DB_USER+":"+DB_PASSWORD+"@"+DB_HOST+":27017/"+DB_NAME, serverSelectionTimeoutMS=5000)
+    #db = pymongo.MongoClient("mongodb://0.0.0.0:27017")
     return db
-
