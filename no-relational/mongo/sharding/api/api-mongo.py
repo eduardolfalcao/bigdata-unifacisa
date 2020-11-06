@@ -101,6 +101,6 @@ def get_people_recognized():
     return ret, error
 
 def get_database():
-    db = pymongo.MongoClient("mongodb://"+DB_USER+":"+DB_PASSWORD+"@"+DB_HOST+":27017/"+DB_NAME, serverSelectionTimeoutMS=5000)
+    db = pymongo.MongoClient("mongodb://"+DB_USER+":"+DB_PASSWORD+"@"+DB_HOST+":27017/"+DB_NAME)
     #db = pymongo.MongoClient("mongodb://0.0.0.0:27017")
     return db

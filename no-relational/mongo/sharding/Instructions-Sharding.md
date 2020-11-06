@@ -2,11 +2,9 @@
 
 ## Mongo Deployment (with sharding)
 
-Ref1: https://medium.com/@gustavo.leitao/criando-um-cluster-mongodb-com-replicaset-e-sharding-com-docker-9cb19d456b56
+Ref: https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
 
-Ref2: https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
-
-First, let us create a network so that containers can communicate:
+Firtst, let's create a network so that containers can communicate:
 ```bash
 sudo docker network create mongo-shard
 ```
@@ -14,8 +12,8 @@ sudo docker network create mongo-shard
 Now, we create ConfigServers Containers, one per Shard.
 To do so, we use mongo image, with --configsvr, which means we're running the ConfigServer.
 ```bash
-sudo docker run --name mongo-config01 --net mongo-shard -d mongo mongod --configsvr --replSet configserver --port 27017
-sudo docker run --name mongo-config02 --net mongo-shard -d mongo mongod --configsvr --replSet configserver --port 27017
+sudo docker run --name mongo-config01 --net mongo-shard -d mongo mongod --configsvr --replSet configserver --port 27017 --dbpath data/db
+sudo docker run --name mongo-config02 --net mongo-shard -d mongo mongod --configsvr --replSet configserver --port 27017 --dbpath data/db
 ```
 
 After starting ConfigServer, we need to set them up.
@@ -40,20 +38,20 @@ rs.initiate(
 ```
 
 Now, we proceed to create the shards.
-We are going to create three shards, each with a replica, in total, six nodes.
+We are going to create two shards, each with a replica, in total, six nodes.
 We use mongo image with --shardsvr parameter, specifying this is a shard server.
 ```bash
 # shard1, replicas A and B
 sudo docker run --name mongo-shard1a --net mongo-shard -d mongo mongod --port 27018 --shardsvr --replSet shard01 --dbpath /data/db
-#sudo docker run --name mongo-shard1b --net mongo-shard -d mongo mongod --port 27018 --shardsvr --replSet shard01 --dbpath /data/db
+sudo docker run --name mongo-shard1b --net mongo-shard -d mongo mongod --port 27018 --shardsvr --replSet shard01 --dbpath /data/db
 
 # shard2, replicas A and B
 sudo docker run --name mongo-shard2a --net mongo-shard -d mongo mongod --port 27019 --shardsvr --replSet shard02 --dbpath /data/db
-#sudo docker run --name mongo-shard2b --net mongo-shard -d mongo mongod --port 27019 --shardsvr --replSet shard02 --dbpath /data/db
+sudo docker run --name mongo-shard2b --net mongo-shard -d mongo mongod --port 27019 --shardsvr --replSet shard02 --dbpath /data/db
 ```
 
 Once deployed and running (online), we need to configure and initiate the shards.
-To do that, we're going to access the shell of each of the shards (1, 2, and 3), applying their respective setup.
+To do that, we're going to access the shell of each of the shards (1 and 2), applying their respective setup.
 
 ```bash
 sudo docker exec -it mongo-shard1a mongo --port 27018
@@ -64,7 +62,7 @@ rs.initiate(
       version: 1,
       members: [
          { _id: 0, host : "mongo-shard1a:27018" },
-         //{ _id: 1, host : "mongo-shard1b:27018" },
+         { _id: 1, host : "mongo-shard1b:27018" },
       ]
    }
 )
@@ -77,7 +75,7 @@ rs.initiate(
       version: 1,
       members: [
          { _id: 0, host : "mongo-shard2a:27019" },
-         //{ _id: 1, host : "mongo-shard2b:27019" },
+         { _id: 1, host : "mongo-shard2b:27019" },
       ]
    }
 )
@@ -96,12 +94,13 @@ Finally, we need to set up the Router to that it get to know the shards:
 ```bash
 sudo docker exec -it mongo-router mongo
 
+use _id
 db.createUser(
     {
       user: "eduardolfalcao",
       pwd: "edu123",
       roles: [
-         { role: "dbOwner", db: "iot_sensor" }
+         { role: "dbOwner", db: "_id" }
       ]
     }
 ,
@@ -112,44 +111,30 @@ db.createUser(
 );
 
 sh.addShard("shard01/mongo-shard1a:27018")
-//sh.addShard("shard01/mongo-shard1b:27018") 
+sh.addShard("shard01/mongo-shard1b:27018") 
 sh.addShard("shard02/mongo-shard2a:27019")
-//sh.addShard("shard02/mongo-shard2b:27019") 
+sh.addShard("shard02/mongo-shard2b:27019")
+
+sh.enableSharding("_id")
+db.createCollection("_id.peopleCountCollection")
+sh.shardCollection("_id.peopleCountCollection", {"collector_id" : "hashed"}) 
 
 // verify that everything is ok with cluster
 sh.status()
 ```
 
-Outside the container, enable the use of freshly created DB:
-```bash
-sudo docker exec -it mongo-router bash -c "echo 'use iot_sensor' | mongo"
-```
-
 ## Deploy Python Flask API to interact with Mongo
 
-Build image of container with flask api:
-```bash
-cd no-relational/mongo/sharding/api
-sudo docker build -t api-mongo .
-```
-
-Get to know ip of MongoDB Router:
-For instance, in the following line, this is the address of Mongo: peoplecounterandrecogni.08ezm.mongodb.net
-```bash
-export ROUTER_IP=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(sudo docker ps | grep mongo-router | cut -f 1 -d ' '))
-```
+Config environment variables, build image of container with flask api, and run container with image freshly created:
 
 ```bash
-export MONGO_IP=$ROUTER_IP
-export DB_NAME=iot_sensor
+export MONGO_IP=172.17.0.1
+export DB_NAME=_id
 export DB_USER=eduardolfalcao
 export DB_PASSWORD=edu123
-```
 
-Then, run flask api:
-```bash
 cd no-relational/mongo/sharding/api
-sudo docker run -e FLASK_APP=api-mongo.py -e DB_HOST=$MONGO_IP -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD api-mongo:latest
+sudo docker build -t api-mongo . && sudo docker run -e FLASK_APP=api-mongo.py -e DB_HOST=$MONGO_IP -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD api-mongo:latest
 ```
 
 ## Using Mongo DB through the API
