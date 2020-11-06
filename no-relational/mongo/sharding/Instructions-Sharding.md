@@ -210,3 +210,14 @@ Get all people recognized.
 curl http://$FLASK_IP:8080/get_people_recognized --request GET 
 ```
 
+## Verify Distribution
+
+Modify populate Maria script to populate our deploied mongo.
+After inserting some data, check distribution between shards, as follows: 
+
+```bash
+sudo docker exec -it mongo-router mongo
+
+use _id
+db.peopleCountCollection.getShardDistribution()
+```
